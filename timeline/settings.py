@@ -163,3 +163,7 @@ LOGGING = {
         },
     }
 }
+
+
+LOGIN_URL = '/account/login'
+LOGOUT_URL = '/account/logout'

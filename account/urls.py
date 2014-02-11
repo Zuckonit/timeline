@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, url
-from views import _login, _logout, _register, _update_profile
+from views import _login, _logout, _register, _update_profile, show_user_profile
 
 
 urlpatterns = patterns('',
@@ -8,4 +8,5 @@ urlpatterns = patterns('',
     url(r'^logout/$', _logout),
     url(r'^register/$', _register),
     url(r'^update_profile/$', _update_profile),
+    url(r'^profile/$', show_user_profile),
 )

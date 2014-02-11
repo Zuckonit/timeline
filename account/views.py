@@ -2,10 +2,13 @@ from django.contrib.auth.models import User
 from django.shortcuts import render_to_response as render
 from django.contrib import auth
 from django.http import Http404
+from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_protect
 from models import UserProfile
+from datetime import date
 
 from forms import LoginForm, RegisterForm, ProfileForm
 
@@ -18,52 +21,57 @@ def _register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            username = request.POST.get('username', '')
-            password = request.POST.get('password', '')
-            re_password = request.POST.get('re_password', '')
-            email = request.POST.get('email', '')
-            if password != re_password:
+            data = form.clean()
+            if data['password'] != data['re_password']:
                 return render('register.html', RequestContext(request, {'form': form}))
             obj_user = User.objects
-            if obj_user.filter(username=username).exists() or obj_user.filter(email=email).exists():
-                message(request, 'user or email already existed')
+            if obj_user.filter(username=data['username']).exists() or obj_user.filter(email=data['email']).exists():
+                messages.error(request, 'user or email already existed')
                 return render('register.html', RequestContext(request, {'form': form}))
-            new_user = obj_user.create_user(username=username, password=password, email=email)
+            new_user = obj_user.create_user(username=data['username'], password=data['password'], email=data['email'])
             new_user.is_active = True
             new_user.is_staff = True
+            new_user.save()
+            new_profile = UserProfile(user=new_user)
             try:
-                new_user.save()
-                return HttpResponseRedirect('/account/login')
+                new_profile.save()
+                return HttpResponseRedirect('/')
             except:
-                message(request, 'register new user failed!')
+                messages.error(request, 'register new user failed!')
                 return render('register.html', RequestContext(request, {'form': form}))
-            return HttpResponseRedirect('/account/login')
+            return HttpResponseRedirect('/')
         return render('register.html', RequestContext(request, {'form': form}))
 
 
+@csrf_protect
 def _login(request):
     if request.user.is_authenticated():
-        return HttpResponseRedirect('/admin')
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER','/'))
     if request.method == 'GET':
+        referer  = request.META.get('HTTP_REFERER','/')
+        if not 'accounts' in str(referer) :
+            request.session['referer'] = referer
+        else :
+            request.session['referer'] = '/'
         form = LoginForm()
         return render('login.html', RequestContext(request, {'form': form}))
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
-            username = request.POST.get('username', '')
-            password = request.POST.get('password', '')
-            user = auth.authenticate(username=username, password=password)
+            data = form.clean()
+            user = auth.authenticate(username=data['username'], password=data['password'])
             if user is not None and user.is_active:
                 auth.login(request, user)
-                return HttpResponseRedirect('/admin')
-            return render('login.html', RequestContext(request, {'form':form, 'password_is_wrong':True}))
+                next = request.GET.get('next') or request.session['referer'] or '/'
+                return HttpResponseRedirect(next)
         return render('login.html', RequestContext(request, {'form':form, }))
 
 
 def _logout(request):
     if request.user.is_authenticated():
         auth.logout(request)
-    return HttpResponseRedirect('/account/login')
+    return HttpResponseRedirect('/')
+
 
 @login_required
 def _update_profile(request):
@@ -76,12 +84,15 @@ def _update_profile(request):
         birthday = request.POST.get('birthday', '')
         profile_obj = UserProfile.objects
         cur_user = profile_obj.get(user=request.user)
-        #if cur_user.filter(birthday=birthday).exists() and cur_user.filter(sex=sex).exists():
-            #return HttpResponseRedirect('/admin')
         cur_user.sex = sex
-        cur_user.birthday = birthday
+        b = birthday.split('/')
+        cur_user.birthday = date(int(b[2]), int(b[0]), int(b[1]))
         cur_user.save()
-        return HttpResponseRedirect('/admin')
+        return HttpResponseRedirect('/')
 
 
-
+@login_required
+def show_user_profile(request):
+    #username = request.user.username
+    profile = UserProfile.objects.get(user=request.user)
+    return render('profile.html', RequestContext(request, {'profile':profile,}))

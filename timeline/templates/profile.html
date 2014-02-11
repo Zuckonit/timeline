@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block head %}
+<title>{{ username }}'s profile</title>
+{% endblock %}
+
+{% block body %}
+Username: <label for="username">{{ profile.user.username }}</label> <br/>
+Email: <label for="email">{{ profile.user.email }}</label><br/>
+Sex: <label for="sex">{{ profile.sex }}</label><br/>
+Birthday: <label for="birthday">{{ profile.birthday | date:"Y-m-d" }}</label><br/>
+<div id="sex"></div>
+Age: <label for="age">{{ profile.age }}</label><br/>
+Priority: <label for="priority">{{ profile.priority }}</label><br/>
+{% endblock %}

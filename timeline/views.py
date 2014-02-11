@@ -20,10 +20,14 @@ def post_new_timeline(request):
         return HttpResponseRedirect('/blog/')
 
 
-
 @login_required
 def show_user_timeline(request):
     user = request.user.username
     pieces = TimeLine.objects.filter(user=request.user)
     return render('timeline.html', RequestContext(request, {'username':user, 'pieces':pieces,}))
 
+
+def index_page(request):
+    if request.user.is_authenticated():
+        return HttpResponseRedirect('/blog')
+    return HttpResponseRedirect('/account/login')

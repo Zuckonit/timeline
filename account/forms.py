@@ -14,8 +14,10 @@ class RegisterForm(forms.Form):
     re_password = forms.CharField(label='Repeat', widget=forms.PasswordInput(), min_length=6)
     email = forms.EmailField(label='email')
 
+from functools import partial
+DateInput = partial(forms.DateInput, {'class': 'datepicker'})
 class ProfileForm(forms.Form):
-    SEX_CHOICE = [(2, ''), (0, 'female'), (1, 'male')]
-    sex = forms.ChoiceField(choices=SEX_CHOICE, widget=forms.RadioSelect())
-    birthday = forms.ChoiceField(widget=widgets.AdminDateWidget())
+    SEX_CHOICE = [(2, 'secret'), (0, 'female'), (1, 'male')]
+    sex = forms.ChoiceField(choices=SEX_CHOICE, widget=forms.RadioSelect(), initial=[(2, 'secret')])
+    birthday = forms.DateField(widget=DateInput())
     
