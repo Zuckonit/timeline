@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block head %}
+<title>{{ username }}'s TimeLine</title>
+{% endblock %}
+
+{% block body %}
+<h1>{{ user }}'s TimeLine</h1>
+{% for item in pieces %}
+{{ item.title }} --> {{ item.content }}  -- {{ item.date_published }}
+{% endfor %}
+{% endblock %}

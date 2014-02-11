@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block head %}
+<title>Homepage</title>
+{% endblock %}
+
+{% block body %}
+  {% for item in pieces %}
+  <ul>
+    <li>{{ pieces.title }}</li>
+    <li>{{ pieces.content }}</li>
+    <br/>
+    <br/>
+  </ul>
+  {% endfor %}
+{% endblock %}
