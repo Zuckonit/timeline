@@ -12,7 +12,11 @@ from datetime import date
 
 from forms import LoginForm, RegisterForm, ProfileForm
 
+REGISTER_TURN_OFF = False
+
 def _register(request):
+    if REGISTER_TURN_OFF:
+        return render('register_turn_off.html', RequestContext(request))
     if request.user.is_authenticated():
         auth.logout(request)
     if request.method == 'GET':
